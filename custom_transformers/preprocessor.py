@@ -89,6 +89,16 @@ class ColumnConverter(TransformerMixin):
         _df['admission_type_code'] = _df['admission_type_code'].astype('category')
 
         #admission source
+        referral = [1, 2, 3]
+        transfer = [4, 5, 6, 10, 18, 19, 22, 25]
+        emergency = [7]
+        all_admissions = referral+transfer+emergency
+
+        _df.loc[~(_df['admission_source_code'].isin(all_admissions)), 'admission_source_code'] = 'unknown'
+        _df.loc[(_df['admission_source_code'].isin(referral)), 'admission_source_code'] = 'referral'
+        _df.loc[(_df['admission_source_code'].isin(transfer)), 'admission_source_code'] = 'transfer'
+        _df.loc[(_df['admission_source_code'].isin(emergency)), 'admission_source_code'] = 'emergency'
+        _df['admission_source_code'] = _df['admission_source_code'].astype('category')
 
         #discharge code
         home = [1]
