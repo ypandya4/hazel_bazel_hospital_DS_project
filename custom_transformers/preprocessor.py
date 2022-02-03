@@ -14,12 +14,13 @@ class ColumnConverter(TransformerMixin):
         _df = df.copy()
        
         ### binary variables
-        _df = _df.assign(has_prosthesis = _df['has_prosthesis'].map({True: 1, False: 0}),
-                         blood_transfusion = _df['blood_transfusion'].map({True: 1, False: 0}),
-                         diuretics = _df['diuretics'].map({'Yes': 1, 'No': 0}),
-                         insulin = _df['insulin'].map({'Yes': 1, 'No': 0}),
-                         change = _df['change'].map({'Ch': 1, 'No': 0}),
-                         diabetesMed = _df['diabetesMed'].map({'Yes': 1, 'No': 0}))
+        _df = _df.assign(#has_prosthesis = _df['has_prosthesis'].map({True: 1, False: 0}),
+                         #blood_transfusion = _df['blood_transfusion'].map({True: 1, False: 0}),
+                         diuretics = _df['diuretics'].map({'Yes': True, 'No': False}),
+                         insulin = _df['insulin'].map({'Yes': True, 'No': False}),
+                         change = _df['change'].map({'Ch': True, 'No': False}),
+                         diabetesMed = _df['diabetesMed'].map({'Yes': True, 'No': False}),
+                         complete_vaccination_status = _df['complete_vaccination_status'].map({'Complete': True, 'Incomplete': False}))
 
         ### ordered categories
         _df['age'] = _df['age'].str.lstrip("\[").str.rstrip(")")
@@ -53,13 +54,12 @@ class ColumnConverter(TransformerMixin):
         _df.loc[~(_df['A1Cresult'].isin(ordered_A1C)), 'A1Cresult'] = 'unknown'
 
         #Gender
-        _df['gender'] = _df['gender'].astype('category')
         _df['gender'] = _df['gender'].str.lower()
         valid_genders = ['male', 'female']
         _df.loc[~(_df['gender'].isin(valid_genders)), 'gender'] = 'unknown'
+        _df['gender'] = _df['gender'].astype('category')
 
         #race
-        _df['race'] = _df['race'].astype('category')
         _df['race'] = _df['race'].str.lower().str.lstrip().str[0:3]
         black = ['afr', 'bla']
         white = ['cau', 'whi', 'eur']
@@ -71,6 +71,7 @@ class ColumnConverter(TransformerMixin):
         _df.loc[(_df['race'].isin(white)), 'race'] = 'white'
         _df.loc[(_df['race'].isin(hispanic)), 'race'] = 'hispanic'
         _df.loc[(_df['race'].isin(asian)), 'race'] = 'asian'
+        _df['race'] = _df['race'].astype('category')
 
         #insurance status (determined from payer code)
         _df.payer_code = _df.payer_code.where(_df.payer_code != '?')
