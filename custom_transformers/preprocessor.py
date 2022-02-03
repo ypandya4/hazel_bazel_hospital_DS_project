@@ -152,5 +152,51 @@ class ColumnConverter(TransformerMixin):
         _df.loc[~(_df['medical_specialty'].isin(selected_specialties)), 'medical_specialty'] = 'other'
         _df['medical_specialty'] = _df['medical_specialty'].astype('category')
        
+       # diagnosis columns
+        infection = [str(code) for code in list(range(1, 140))]
+        neoplasms = [str(code) for code in list(range(141, 240))]
+        endocrine_nutritional_metabolic_immune = [str(code) for code in list(range(241, 280))]
+        blood = [str(code) for code in list(range(280, 290))]
+        mental = [str(code) for code in list(range(290, 320))]
+        nervous_system = [str(code) for code in list(range(320, 390))]
+        circulatory = [str(code) for code in list(range(390, 460))]
+        respiratory = [str(code) for code in list(range(460, 520))]
+        digestive = [str(code) for code in list(range(520, 580))]
+        genitourinary = [str(code) for code in list(range(580, 630))]
+        pregnancy = [str(code) for code in list(range(630, 680))]
+        skin = [str(code) for code in list(range(680, 710))]
+        musculoskeletal = [str(code) for code in list(range(710, 740))]
+        congenital = [str(code) for code in list(range(740, 760))]
+        perinatal = [str(code) for code in list(range(760, 780))]
+        ill_defined = [str(code) for code in list(range(780, 800))]
+        injury_poisoning = [str(code) for code in list(range(800, 900))] + ['e'+str(code) for code in list(range(800, 900))]
+        supplemental = ['v'+str(code) for code in list(range(1, 90))]
+
+        all_codes = infection + neoplasms + endocrine_nutritional_metabolic_immune + blood + mental+ nervous_system + circulatory + respiratory + digestive + genitourinary + pregnancy + skin + musculoskeletal+ congenital+ perinatal+ ill_defined+ injury_poisoning+ supplemental 
+
+        columns = ['diag_1', 'diag_2', 'diag_3']
+        for col in columns:
+            _df[col] = _df[col].fillna(value='unknown')
+            _df.loc[~(_df[col].isin(all_codes)), col] = 'unknown'
+    
+            _df.loc[(_df[col].isin(infection)), col] = 'infection'
+            _df.loc[(_df[col].isin(neoplasms)), col] = 'neoplasms'
+            _df.loc[(_df[col].isin(endocrine_nutritional_metabolic_immune)), col] = 'endocrine_nutritional_metabolic_immune'
+            _df.loc[(_df[col].isin(blood)), col] = 'blood'
+            _df.loc[(_df[col].isin(mental)), col] = 'mental'
+            _df.loc[(_df[col].isin(nervous_system)), col] = 'nervous_system'
+            _df.loc[(_df[col].isin(circulatory)), col] = 'circulatory'
+            _df.loc[(_df[col].isin(respiratory)), col] = 'respiratory'
+            _df.loc[(_df[col].isin(digestive)), col] = 'digestive'
+            _df.loc[(_df[col].isin(genitourinary)), col] = 'genitourinary'
+            _df.loc[(_df[col].isin(pregnancy)), col] = 'pregnancy'
+            _df.loc[(_df[col].isin(skin)), col] = 'skin'
+            _df.loc[(_df[col].isin(musculoskeletal)), col] = 'musculoskeletal'
+            _df.loc[(_df[col].isin(congenital)), col] = 'congenital'
+            _df.loc[(_df[col].isin(perinatal)), col] = 'perinatal'
+            _df.loc[(_df[col].isin(ill_defined)), col] = 'ill_defined'
+            _df.loc[(_df[col].isin(injury_poisoning)), col] = 'injury_poisoning'
+            _df.loc[(_df[col].isin(supplemental)), col] = 'supplemental'
+            _df.loc[(_df[col].isin(infection)), col] = 'infection'
 
         return _df
