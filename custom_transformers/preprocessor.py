@@ -1,6 +1,9 @@
 from sklearn.base import TransformerMixin
+from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.preprocessing import StandardScaler, power_transform, RobustScaler
 import pandas as pd
 import numpy as np
+
 
 class ColumnConverter(TransformerMixin):
     def __init__(self):
@@ -12,15 +15,21 @@ class ColumnConverter(TransformerMixin):
     def transform(self, df, *args):
        ### Put your transformation here
         _df = df.copy()
-       
+           
         ### binary variables
         _df = _df.assign(#has_prosthesis = _df['has_prosthesis'].map({True: 1, False: 0}),
                          #blood_transfusion = _df['blood_transfusion'].map({True: 1, False: 0}),
-                         diuretics = _df['diuretics'].map({'Yes': True, 'No': False}),
-                         insulin = _df['insulin'].map({'Yes': True, 'No': False}),
+                         diuretics = _df['diuretics'].map({'Yes': True, 'No': False}),            
+                         insulin = _df['insulin'].map({'Yes': True, 'No': False}),            
                          change = _df['change'].map({'Ch': True, 'No': False}),
                          diabetesMed = _df['diabetesMed'].map({'Yes': True, 'No': False}),
                          complete_vaccination_status = _df['complete_vaccination_status'].map({'Complete': True, 'Incomplete': False}))
+            
+        _df['diuretics'] = _df['diuretics'].astype('bool')
+        _df['insulin'] = _df['insulin'].astype('bool')
+        _df['change'] = _df['change'].astype('bool')
+        _df['diabetesMed'] = _df['diabetesMed'].astype('bool')
+        _df['complete_vaccination_status'] = _df['complete_vaccination_status'].astype('bool')
 
         ### ordered categories
         _df['age'] = _df['age'].str.lstrip("\[").str.rstrip(")")
@@ -199,5 +208,10 @@ class ColumnConverter(TransformerMixin):
             _df.loc[(_df[col].isin(injury_poisoning)), col] = 'injury_poisoning'
             _df.loc[(_df[col].isin(supplemental)), col] = 'supplemental'
             _df.loc[(_df[col].isin(infection)), col] = 'infection'
+            
+            _df[col] = _df[col].astype('category')
+        
+        # blood type
+        _df['blood_type'] = _df['blood_type'].astype('category')
 
         return _df
