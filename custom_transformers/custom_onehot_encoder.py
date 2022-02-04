@@ -30,8 +30,8 @@ class custom_one_hot(TransformerMixin):
             return _df
         
         oh = ce.OneHotEncoder(cols = cats,
-                           handle_unknown='indicator',
-                           handle_missing='indicator',
+                           handle_unknown='value',
+                           handle_missing='value',
                            use_cat_names = True)
 
         return oh.fit_transform(_df)

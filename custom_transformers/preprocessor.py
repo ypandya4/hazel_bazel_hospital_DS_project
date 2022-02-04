@@ -15,14 +15,30 @@ class ColumnConverter(TransformerMixin):
     def transform(self, df, *args):
        ### Put your transformation here
         _df = df.copy()
-           
+
+        ### numerical variables (just assigning category type)
+        num_columns = ['admission_source_code', 'time_in_hospital', 'num_procedures', 'num_medications',
+                    'number_outpatient', 'number_emergency', 'number_inpatient', 'number_diagnoses',
+                    'admission_type_code', 'discharge_disposition_code', 'num_lab_procedures', 'hemoglobin_level']
+        for col in num_columns:
+            _df[col] = _df[col].astype('float64')
+
         ### binary variables
+
+        binary_cols = ['diuretics',
+                       'insulin',
+                       'change',
+                       'diabetesMed',
+                       'complete_vaccination_status']
+        for col in binary_cols:
+            _df[col] = _df[col].str.lower()
+
         _df = _df.assign(#has_prosthesis = _df['has_prosthesis'].map({True: 1, False: 0}),
                          #blood_transfusion = _df['blood_transfusion'].map({True: 1, False: 0}),
-                         diuretics = _df['diuretics'].map({'Yes': True, 'No': False}),            
-                         insulin = _df['insulin'].map({'Yes': True, 'No': False}),            
-                         change = _df['change'].map({'Ch': True, 'No': False}),
-                         diabetesMed = _df['diabetesMed'].map({'Yes': True, 'No': False}),
+                         diuretics = _df['diuretics'].map({'yes': True, 'no': False}),            
+                         insulin = _df['insulin'].map({'yes': True, 'no': False}),            
+                         change = _df['change'].map({'ch': True, 'no': False}),
+                         diabetesMed = _df['diabetesMed'].map({'yes': True, 'no': False}),
                          complete_vaccination_status = _df['complete_vaccination_status'].map({'Complete': True, 'Incomplete': False}))
             
         _df['diuretics'] = _df['diuretics'].astype('bool')
@@ -39,7 +55,7 @@ class ColumnConverter(TransformerMixin):
     
         #setting categories and replacing missing or unexpected values with 'unknown'
         #age
-        _df['age'] = _df['age'].astype('category')
+        _df['age'] = _df['age'].str.lower().astype('category')
         ordered_age = ['unknown', '0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100']
         _df = _df.assign(age=_df['age'].cat.set_categories(ordered_age, ordered=True))
         _df.loc[~(_df['age'].isin(ordered_age)), 'age'] = 'unknown'
@@ -51,13 +67,13 @@ class ColumnConverter(TransformerMixin):
         _df.loc[~(_df['weight'].isin(ordered_weight)), 'weight'] = 'unknown'
 
         #max_glucose
-        _df['max_glu_serum'] = _df['max_glu_serum'].astype('category')
+        _df['max_glu_serum'] = _df['max_glu_serum'].str.lower().astype('category')
         ordered_max_glu = ['unknown', 'norm', '>200', '>300']
         _df = _df.assign(max_glu_serum=_df['max_glu_serum'].cat.set_categories(ordered_max_glu, ordered=True))
         _df.loc[~(_df['max_glu_serum'].isin(ordered_max_glu)), 'max_glu_serum'] = 'unknown'
 
         #A1Cresult
-        _df['A1Cresult'] = _df['A1Cresult'].astype('category')
+        _df['A1Cresult'] = _df['A1Cresult'].str.lower().astype('category')
         ordered_A1C = ['unknown', 'norm', '>7', '>8']
         _df = _df.assign(A1Cresult=_df['A1Cresult'].cat.set_categories(ordered_A1C, ordered=True))
         _df.loc[~(_df['A1Cresult'].isin(ordered_A1C)), 'A1Cresult'] = 'unknown'
@@ -114,19 +130,18 @@ class ColumnConverter(TransformerMixin):
         home = [1]
         left_ama = [7]
         hospice = [13, 14]
-        transferred = [2, 3, 4, 5, 9, 10, 15, 22, 23, 24, 27, 28, 29]
+        transferred = [2, 3, 4, 5, 9, 10, 15, 22, 23, 24, 27, 28, 29, 12, 16, 17]
         died = [11, 19, 20, 21]
-        for_outpatient_services = [12, 16, 17]
         home_services = [6, 8]
-        all_cats = home+left_ama+hospice+transferred+died+for_outpatient_services+home_services
-
+        all_cats = home+left_ama+hospice+transferred+died+home_services
+        
+        _df['discharge_disposition_code'] = _df['discharge_disposition_code'].fillna(value='unknown')
         _df.loc[~(_df['discharge_disposition_code'].isin(all_cats)), 'discharge_disposition_code'] = 'unknown'
         _df.loc[(_df['discharge_disposition_code'].isin(home)), 'discharge_disposition_code'] = 'discharged_home'
         _df.loc[(_df['discharge_disposition_code'].isin(left_ama)), 'discharge_disposition_code'] = 'left_ama'
         _df.loc[(_df['discharge_disposition_code'].isin(hospice)), 'discharge_disposition_code'] = 'discharged_hospice'
         _df.loc[(_df['discharge_disposition_code'].isin(transferred)), 'discharge_disposition_code'] = 'transferred_inpatient'
         _df.loc[(_df['discharge_disposition_code'].isin(died)), 'discharge_disposition_code'] = 'expired'
-        _df.loc[(_df['discharge_disposition_code'].isin(for_outpatient_services)), 'discharge_disposition_code'] = 'transferred_outpatient'
         _df.loc[(_df['discharge_disposition_code'].isin(home_services)), 'discharge_disposition_code'] = 'home_care'
         _df['discharge_disposition_code'] = _df['discharge_disposition_code'].astype('category')
         
@@ -186,6 +201,7 @@ class ColumnConverter(TransformerMixin):
 
         columns = ['diag_1', 'diag_2', 'diag_3']
         for col in columns:
+            _df[col] = _df[col].str.lower().str[0:3]
             _df[col] = _df[col].fillna(value='unknown')
             _df.loc[~(_df[col].isin(all_codes)), col] = 'unknown'
     
@@ -212,6 +228,9 @@ class ColumnConverter(TransformerMixin):
             _df[col] = _df[col].astype('category')
         
         # blood type
+        _df['blood_type'] = _df['blood_type'].str.lower()
+        _df['blood_type'].fillna(value='unknown')
+        _df.loc[~(_df['blood_type'].isin(['a+', 'b+', 'o+', 'ab-', 'a-', 'o-', 'ab+', 'b-'])), 'blood_type'] = 'unknown'
         _df['blood_type'] = _df['blood_type'].astype('category')
 
         return _df
